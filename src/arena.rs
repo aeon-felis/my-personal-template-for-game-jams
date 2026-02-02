@@ -33,7 +33,7 @@ impl Plugin for ArenaPlugin {
             (
                 // Here, too, remove the one you don't use.
                 populate_box_platform,
-                // populate_blocks_platform,
+                populate_blocks_platform,
             ),
         );
     }
@@ -56,5 +56,64 @@ fn populate_box_platform(
                 || StandardMaterial::from_color(css::GRAY),
             ));
         }
+    });
+}
+
+#[derive(Component)]
+struct CurrentSizeInBlocks(UVec3);
+
+fn populate_blocks_platform(
+    mut populate: YoleckPopulate<
+        (&Vpeol3dScale, Option<&CurrentSizeInBlocks>),
+        (With<IsPlatform>, With<AlignedToGrid>),
+    >,
+    mut pbr: CachedPbrMaker,
+) {
+    populate.populate(|ctx, mut cmd, (scale, current_size_in_blocks)| {
+        let size_in_blocks =
+            UVec3::from_array(scale.0.to_array().map(|c| (c.floor().abs() as u32).max(1)));
+
+        if let Some(CurrentSizeInBlocks(current_size_in_blocks)) = current_size_in_blocks {
+            if *current_size_in_blocks == size_in_blocks {
+                return;
+            } else {
+                cmd.despawn_children();
+            }
+        }
+
+        let pbr = pbr.make_pbr_with(
+            || Mesh::from(Cuboid::new(0.8, 0.8, 0.8)),
+            || StandardMaterial::from_color(css::DARK_RED),
+        );
+
+        let offset = -0.5 * (scale.0 + Vec3::ONE);
+
+        if ctx.is_in_editor() {
+            cmd.insert((
+                VpeolWillContainClickableChildren,
+                CurrentSizeInBlocks(size_in_blocks),
+            ));
+        }
+
+        let reverse_scale = scale.0.map(|c| 1.0 / c);
+
+        cmd.with_children(|commands| {
+            for x in 0..size_in_blocks.x {
+                for y in 0..size_in_blocks.y {
+                    for z in 0..size_in_blocks.z {
+                        commands.spawn((
+                            Transform {
+                                translation: (offset + Vec3::new(x as f32, y as f32, z as f32))
+                                    * reverse_scale,
+                                rotation: Quat::IDENTITY,
+                                scale: reverse_scale,
+                            },
+                            pbr.clone(),
+                        ));
+                    }
+                }
+            }
+            commands.spawn(());
+        });
     });
 }
