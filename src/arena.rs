@@ -4,6 +4,7 @@ use bevy_yoleck::prelude::*;
 use bevy_yoleck::vpeol::prelude::*;
 
 use crate::utils::CachedPbrMaker;
+use crate::yoleck_ext::{AlignedToGrid, ResizeKnobs};
 
 pub struct ArenaPlugin;
 
@@ -17,6 +18,7 @@ impl Plugin for ArenaPlugin {
                 .with::<Vpeol3dPosition>()
                 .with::<Vpeol3dScale>()
                 .with::<Vpeol3dRotation>()
+                .insert_on_init_during_editor(|| ResizeKnobs { axes: BVec3::TRUE })
                 .insert_on_init(|| IsPlatform)
         });
         app.add_yoleck_entity_type({
@@ -24,6 +26,7 @@ impl Plugin for ArenaPlugin {
             YoleckEntityType::new("BlocksPlatform")
                 .with::<Vpeol3dPosition>()
                 .with::<Vpeol3dScale>()
+                .insert_on_init_during_editor(|| ResizeKnobs { axes: BVec3::TRUE })
                 .insert_on_init(|| IsPlatform)
                 .insert_on_init(|| AlignedToGrid)
         });
@@ -41,9 +44,6 @@ impl Plugin for ArenaPlugin {
 
 #[derive(Component)]
 pub struct IsPlatform;
-
-#[derive(Component)]
-struct AlignedToGrid;
 
 fn populate_box_platform(
     mut populate: YoleckPopulate<(), (With<IsPlatform>, Without<AlignedToGrid>)>,
@@ -86,7 +86,7 @@ fn populate_blocks_platform(
             || StandardMaterial::from_color(css::DARK_RED),
         );
 
-        let offset = -0.5 * (scale.0 + Vec3::ONE);
+        let offset = -0.5 * (scale.0 - Vec3::ONE);
 
         if ctx.is_in_editor() {
             cmd.insert((

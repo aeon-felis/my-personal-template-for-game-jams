@@ -1,11 +1,13 @@
 mod arena;
 mod utils;
+mod yoleck_ext;
 
 use bevy::prelude::*;
 use bevy_yoleck::prelude::{YoleckLoadLevel, YoleckSyncWithEditorState};
 use bevy_yoleck::vpeol::prelude::*;
 
 use self::arena::ArenaPlugin;
+use self::yoleck_ext::{AlignToGridPlugin, ResizeKnobsPlugin};
 
 pub struct GameMainPlugin {
     pub is_editor: bool,
@@ -22,6 +24,9 @@ impl Plugin for GameMainPlugin {
                 when_editor: AppState::Editor,
                 when_game: AppState::Game,
             });
+
+            app.add_plugins(ResizeKnobsPlugin);
+            app.add_plugins(AlignToGridPlugin); // only needed if AlignedToGrid is used
         } else {
             // Menu and level loading plugins go here
             if let Some(start_at_level) = &self.start_at_level {
