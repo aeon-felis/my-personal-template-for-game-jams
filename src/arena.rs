@@ -82,7 +82,7 @@ fn populate_blocks_platform(
         }
 
         let pbr = pbr.make_pbr_with(
-            || Mesh::from(Cuboid::new(0.8, 0.8, 0.8)),
+            || Mesh::from(Cuboid::new(0.9, 0.9, 0.9)),
             || StandardMaterial::from_color(css::DARK_RED),
         );
 

@@ -1,13 +1,22 @@
 mod arena;
+mod level_handling;
+mod menu;
 mod utils;
 mod yoleck_ext;
 
+use bevy::ecs::schedule::ScheduleLabel;
 use bevy::prelude::*;
 use bevy_yoleck::prelude::{YoleckLoadLevel, YoleckSyncWithEditorState};
 use bevy_yoleck::vpeol::prelude::*;
 
 use self::arena::ArenaPlugin;
+use self::level_handling::LevelHandlingPlugin;
+use self::menu::MenuPlugin;
 use self::yoleck_ext::{AlignToGridPlugin, ResizeKnobsPlugin};
+
+// Edit these:
+const GAME_TITLE_FOR_MENU: &str = "Game Jam Template";
+pub const ORG_AND_APP_NAMES: Option<(&str, &str)> = None;
 
 pub struct GameMainPlugin {
     pub is_editor: bool,
@@ -16,6 +25,22 @@ pub struct GameMainPlugin {
 
 impl Plugin for GameMainPlugin {
     fn build(&self, app: &mut App) {
+        for schedule in [Update.intern(), FixedUpdate.intern()] {
+            app.configure_sets(
+                schedule,
+                (
+                    During::Menu.run_if(|state: Res<State<AppState>>| state.is_menu()),
+                    During::Gameplay.run_if(in_state(AppState::Game)),
+                ),
+            );
+        }
+        app.insert_state(AppState::MainMenu);
+        app.insert_resource(GameOverReason::Unset);
+        app.add_systems(
+            OnEnter(AppState::Game),
+            GameOverReason::reset_when_gameplay_starts,
+        );
+
         app.add_systems(Startup, setup_camera);
         app.add_plugins(ArenaPlugin);
 
@@ -28,7 +53,7 @@ impl Plugin for GameMainPlugin {
             app.add_plugins(ResizeKnobsPlugin);
             app.add_plugins(AlignToGridPlugin); // only needed if AlignedToGrid is used
         } else {
-            // Menu and level loading plugins go here
+            app.add_plugins((MenuPlugin, LevelHandlingPlugin));
             if let Some(start_at_level) = &self.start_at_level {
                 let start_at_level = if start_at_level.ends_with(".yol") {
                     start_at_level.clone()
@@ -59,14 +84,55 @@ fn setup_camera(mut commands: Commands) {
     ));
 }
 
+#[derive(SystemSet, Clone, PartialEq, Eq, Debug, Hash)]
+pub enum During {
+    Menu,
+    Gameplay,
+}
+
 #[derive(States, Clone, Hash, Debug, PartialEq, Eq)]
 pub enum AppState {
-    // MainMenu,
-    // PauseMenu,
-    // LevelSelectMenu,
-    // LoadLevel,
+    MainMenu,
+    PauseMenu,
+    LevelSelectMenu,
+    LoadLevel,
     Editor,
     Game,
-    // LevelCompleted,
-    // GameOver,
+    LevelCompleted,
+    GameOver,
+}
+
+impl AppState {
+    pub fn is_menu(&self) -> bool {
+        match self {
+            AppState::MainMenu => true,
+            AppState::PauseMenu => true,
+            AppState::LevelSelectMenu => true,
+            AppState::LoadLevel => false,
+            AppState::Editor => false,
+            AppState::Game => false,
+            AppState::LevelCompleted => false,
+            AppState::GameOver => true,
+        }
+    }
+}
+
+#[derive(Resource)]
+pub enum GameOverReason {
+    Unset,
+    PlayerFell,
+    TilesStillStanding(usize),
+}
+
+impl GameOverReason {
+    fn reset_when_gameplay_starts(mut res: ResMut<Self>) {
+        *res = Self::Unset;
+    }
+}
+
+#[derive(Clone, PartialEq, Eq)]
+pub enum ActionForKbgp {
+    Menu,
+    RestartLevel,
+    EndLevel,
 }
