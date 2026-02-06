@@ -20,15 +20,15 @@ impl Plugin for ArenaPlugin {
                 .with::<Vpeol3dRotation>()
                 .insert_on_init_during_editor(|| ResizeKnobs { axes: BVec3::TRUE })
                 .insert_on_init(|| IsPlatform)
+                .insert_on_init(|| SolidBox)
         });
         app.add_yoleck_entity_type({
             // This platform cannot be rotated, and its position and size are aligned to a grid.
             YoleckEntityType::new("BricksPlatform")
                 .with::<Vpeol3dPosition>()
                 .with::<Vpeol3dScale>()
-                .insert_on_init_during_editor(|| ResizeKnobs { axes: BVec3::TRUE })
-                .insert_on_init(|| IsPlatform)
-                .insert_on_init(|| AlignedToGrid)
+                .insert_on_init_during_editor(|| (ResizeKnobs { axes: BVec3::TRUE }, AlignedToGrid))
+                .insert_on_init(|| (IsPlatform, MadeOfBricks))
         });
 
         app.add_systems(
@@ -42,11 +42,20 @@ impl Plugin for ArenaPlugin {
     }
 }
 
+/// Used by other systems to know that this entity is a platform
 #[derive(Component)]
 pub struct IsPlatform;
 
+// These two components are used to distinguish between the two types of platforms the plugin
+// offers. `AlignedToGrid` cannot be used for this purpose since it only gets inserted in editor
+// mode.
+#[derive(Component)]
+struct SolidBox;
+#[derive(Component)]
+struct MadeOfBricks;
+
 fn populate_box_platform(
-    mut populate: YoleckPopulate<(), (With<IsPlatform>, Without<AlignedToGrid>)>,
+    mut populate: YoleckPopulate<(), (With<IsPlatform>, With<SolidBox>)>,
     mut pbr: CachedPbrMaker,
 ) {
     populate.populate(|ctx, mut cmd, _| {
@@ -65,7 +74,7 @@ struct CurrentSizeInBlocks(UVec3);
 fn populate_bricks_platform(
     mut populate: YoleckPopulate<
         (&Vpeol3dScale, Option<&CurrentSizeInBlocks>),
-        (With<IsPlatform>, With<AlignedToGrid>),
+        (With<IsPlatform>, With<MadeOfBricks>),
     >,
     mut pbr: CachedPbrMaker,
 ) {
