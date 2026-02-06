@@ -41,7 +41,7 @@ cargo run -- --level <Level-Name-Without-.yol-Suffix>
 `src/arena.rs` defines two types of platforms you can add in the level editor:
 
 * `BoxPlatform` - which you can freely resize. It scales the transform, so if you use a texture it'd get messed up.
-* `BrickPlugin` - both its location and size are snapped to a grid, using a mechanism implemented in `src/yoleck_ext/align_to_grid.rs`. Instead of a single PBR, its body is combosed of many identical objects (bricks) so it can properly deal with textured models.
+* `BricksPlatform` - both its location and size are snapped to a grid, using a mechanism implemented in `src/yoleck_ext/align_to_grid.rs`. Instead of a single PBR, its body is combosed of many identical objects (bricks) so it can properly deal with textured models.
 
 Both can be resised in the level editor by dragging the green borders that appear when they are selected. This mechanism is implemented in `src/yoleck_ext/resize_knobs.rs`.
 

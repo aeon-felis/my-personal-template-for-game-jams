@@ -23,7 +23,7 @@ impl Plugin for ArenaPlugin {
         });
         app.add_yoleck_entity_type({
             // This platform cannot be rotated, and its position and size are aligned to a grid.
-            YoleckEntityType::new("BlocksPlatform")
+            YoleckEntityType::new("BricksPlatform")
                 .with::<Vpeol3dPosition>()
                 .with::<Vpeol3dScale>()
                 .insert_on_init_during_editor(|| ResizeKnobs { axes: BVec3::TRUE })
@@ -36,7 +36,7 @@ impl Plugin for ArenaPlugin {
             (
                 // Here, too, remove the one you don't use.
                 populate_box_platform,
-                populate_blocks_platform,
+                populate_bricks_platform,
             ),
         );
     }
@@ -62,7 +62,7 @@ fn populate_box_platform(
 #[derive(Component)]
 struct CurrentSizeInBlocks(UVec3);
 
-fn populate_blocks_platform(
+fn populate_bricks_platform(
     mut populate: YoleckPopulate<
         (&Vpeol3dScale, Option<&CurrentSizeInBlocks>),
         (With<IsPlatform>, With<AlignedToGrid>),
