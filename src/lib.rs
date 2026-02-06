@@ -1,4 +1,5 @@
 mod arena;
+mod camera;
 mod level_handling;
 mod menu;
 mod utils;
@@ -7,9 +8,9 @@ mod yoleck_ext;
 use bevy::ecs::schedule::ScheduleLabel;
 use bevy::prelude::*;
 use bevy_yoleck::prelude::YoleckSyncWithEditorState;
-use bevy_yoleck::vpeol::prelude::*;
 
 use self::arena::ArenaPlugin;
+use self::camera::GameCamrePlugin;
 use self::level_handling::{LevelHandlingPlugin, LevelProgress};
 use self::menu::MenuPlugin;
 use self::yoleck_ext::{AlignToGridPlugin, ResizeKnobsPlugin};
@@ -41,7 +42,7 @@ impl Plugin for GameMainPlugin {
             GameOverReason::reset_when_gameplay_starts,
         );
 
-        app.add_systems(Startup, setup_camera);
+        app.add_plugins(GameCamrePlugin);
         app.add_plugins(ArenaPlugin);
 
         if self.is_editor {
@@ -71,16 +72,6 @@ impl Plugin for GameMainPlugin {
             }
         }
     }
-}
-
-// TOOD: move this somewhere more fitting
-fn setup_camera(mut commands: Commands) {
-    commands.spawn((
-        Camera3d::default(),
-        Transform::from_xyz(0.0, 16.0, 40.0).looking_at(Vec3::new(0.0, 0.0, 0.0), Vec3::Y),
-        VpeolCameraState::default(),
-        Vpeol3dCameraControl::topdown(),
-    ));
 }
 
 #[derive(SystemSet, Clone, PartialEq, Eq, Debug, Hash)]
