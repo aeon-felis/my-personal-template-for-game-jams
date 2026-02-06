@@ -6,11 +6,11 @@ mod yoleck_ext;
 
 use bevy::ecs::schedule::ScheduleLabel;
 use bevy::prelude::*;
-use bevy_yoleck::prelude::{YoleckLoadLevel, YoleckSyncWithEditorState};
+use bevy_yoleck::prelude::YoleckSyncWithEditorState;
 use bevy_yoleck::vpeol::prelude::*;
 
 use self::arena::ArenaPlugin;
-use self::level_handling::LevelHandlingPlugin;
+use self::level_handling::{LevelHandlingPlugin, LevelProgress};
 use self::menu::MenuPlugin;
 use self::yoleck_ext::{AlignToGridPlugin, ResizeKnobsPlugin};
 
@@ -62,11 +62,10 @@ impl Plugin for GameMainPlugin {
                 };
                 app.add_systems(
                     Startup,
-                    move |mut commands: Commands, asset_server: Res<AssetServer>| {
-                        // TODO: use the level progress mechanism once I add it
-                        commands.spawn(YoleckLoadLevel(
-                            asset_server.load(format!("levels/{start_at_level}")),
-                        ));
+                    move |mut level_progress: ResMut<LevelProgress>,
+                          mut app_state: ResMut<NextState<AppState>>| {
+                        level_progress.current_level = Some(start_at_level.clone());
+                        app_state.set(AppState::LoadLevel);
                     },
                 );
             }
