@@ -62,7 +62,7 @@ fn edit_scale_with_knobs(
                 let new_size =
                     Vec3::select(resize_knobs.axes, new_size, vpeol_scale.0).max(0.1 * Vec3::ONE);
                 let new_size = if aligned_to_grid {
-                    new_size.round()
+                    new_size.round().max(Vec3::ONE)
                 } else {
                     // The math won't math without this
                     0.5 * (new_size + vpeol_scale.0)
