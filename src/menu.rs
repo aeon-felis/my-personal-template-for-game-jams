@@ -226,14 +226,7 @@ fn game_over_menu(
             .strong()
             .color(egui::Color32::RED),
     );
-    if let Some(reason_text) = match *game_over_reason {
-        GameOverReason::Unset => None,
-        GameOverReason::PlayerFell => Some("player fell off the arena".to_owned()),
-        GameOverReason::TilesStillStanding(1) => Some("1 tile is still standing".to_owned()),
-        GameOverReason::TilesStillStanding(num_still_standing) => {
-            Some(format!("{num_still_standing} tiles are still standing"))
-        }
-    } {
+    if let Some(reason_text) = game_over_reason.reason_text() {
         ui.label(
             egui::RichText::new(reason_text)
                 .size(20.0)

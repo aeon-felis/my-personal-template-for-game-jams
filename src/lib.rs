@@ -120,7 +120,15 @@ impl AppState {
 pub enum GameOverReason {
     Unset,
     PlayerFell,
-    TilesStillStanding(usize),
+}
+
+impl GameOverReason {
+    pub fn reason_text(&self) -> Option<String> {
+        match self {
+            GameOverReason::Unset => None,
+            GameOverReason::PlayerFell => Some("player fell off the arena".to_owned()),
+        }
+    }
 }
 
 impl GameOverReason {
