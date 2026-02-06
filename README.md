@@ -49,6 +49,22 @@ Actual games probably only need one of them, so you can delete the other.
 
 The `populate_...` systems in the `Arena` create their PBR - edit these to create your own graphics.
 
+### Main plane for level editing
+
+This template adds Yoleck with [Vpeol 3D](https://docs.rs/bevy-yoleck/latest/bevy_yoleck/vpeol_3d/index.html) - a module bundled within Yoleck that adds basic support for editing levels in 3D games. But 3D here refers purley to the graphics - it is very possible to create a game with 3D graphics and 2D gameplay, either by preventing any verticality (no jumping, no falling, no ladders/stairs) or by preventing the characters from using the Z axis.
+
+By default, this template configures Vpeol 3D for a top-down game. This means that, during level editing:
+
+* When the camera is moved with WASD, it'll move along the XZ plane. The mouse wheel can be used to move along the Y axis.
+* When an entity is dragged with the mouse's left button (on the entity itself - not on any of the knobs) it'll move along the XZ plane.
+
+If you are making a side-scroller, this is very inconvenient. You want to use the XY plane instead. To do that:
+
+* In `src/main.rs`, change `Vpeol3dPluginForEditor::topdown()` to `Vpeol3dPluginForEditor::sidescroller()`.
+* In `src/camera.rs`, change `Vpeol3dCameraControl::topdown()` to `Vpeol3dCameraControl::sidescroller()`.
+
+There is also `Vpeol3dCameraControl::fps()` for FPS camera (move with WASD, up/down with Q/E, and look around by dragging the mouse with the right button pressed). If you use that, it's probably good idea to leave `Vpeol3dPluginForEditor` as top-down (this affects dragging objects around) since with the FPS's camera's free rotation the XY plane is not very meaningful (you can still move objects along the Y axis using the gizmo)
+
 ## Menu
 
 The menu is defined in `src/menu.rs`. The main part is s `chain()` of systems running in the `EguiPrimaryContextPass` - these systems draw the menu. To add a new section to the menu just add a system to that chain and have it use `ResMut<FrameUi>` to get access to egui.
